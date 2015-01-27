@@ -24,7 +24,8 @@
     hostname,
     port,
     socket,
-    basekey
+    basekey,
+    active              %% true | false
 }).
 
 %% public
@@ -48,18 +49,22 @@ init(_Args) ->
     {ok, Hostname} = application:get_env(statsderl, hostname),
     {ok, Port} = application:get_env(statsderl, port),
     BaseKey = get_base_key(application:get_env(statsderl, base_key)),
+
     {ok, Socket} = init_socket(),
 
     {ok, #state {
         hostname = lookup_hostname(Hostname),
         port = Port,
         basekey = BaseKey,
-        socket = Socket
+        socket = Socket,
+        active = active()
     }}.
 
 handle_call(_Request, _From, State) ->
     {noreply, ok, State}.
 
+handle_cast(_, #state {active = false} = State) ->
+    {noreply, State};
 handle_cast({send, Packet}, #state {
         hostname = {A,B,C,D},
         port = Port,
@@ -129,4 +134,11 @@ socket_module() ->
             Module;
         undefined ->
             ?MODULE
+    end.
+
+
+active() ->
+    case application:get_env(statsderl, active)  of
+        {ok, true} -> true;
+        _ -> false
     end.

@@ -11,6 +11,7 @@ deps:
 
 clean:
 				./rebar clean
+				rm -f *~ */*~
 
 distclean: clean
 				./rebar delete-deps
