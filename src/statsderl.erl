@@ -17,7 +17,8 @@
     timing_fun/3,
     timing_fun/4,
     timing_now/3,
-    timing_now/4
+    timing_now/4,
+    maybe_seed/0
 ]).
 
 -inline([now_diff_ms/1]).
@@ -105,6 +106,12 @@ generate_packet_test_() ->
     ].
 -endif.
 
+active() ->
+    case application:get_env(statsderl, active)  of
+        {ok, false} -> false;
+        _ -> true
+    end.
+
 maybe_seed() ->
     case get(random_seed) of
         undefined ->
@@ -117,8 +124,8 @@ maybe_seed() ->
 
 maybe_send(Method, Key, Value, SampleRate, Tags) when SampleRate >= 1 ->
     send(Method, Key, Value, SampleRate, Tags);
+
 maybe_send(Method, Key, Value, SampleRate, Tags) ->
-    maybe_seed(),
     case random:uniform() =< SampleRate of
         true  ->
             send(Method, Key, Value, SampleRate, Tags);
@@ -127,6 +134,11 @@ maybe_send(Method, Key, Value, SampleRate, Tags) ->
     end.
 
 send(Method, Key, Value, SampleRate, Tags) ->
-    Packet = generate_packet(Method, Key, Value, SampleRate, Tags),
-    ServerName = statsderl_server:random_server_name(),
-    gen_server:cast(ServerName, {send, Packet}).
+    Active = active(),
+    case Active of
+       true ->
+          Packet = generate_packet(Method, Key, Value, SampleRate, Tags),
+          ServerName = statsderl_server:random_server_name(),
+          gen_server:cast(ServerName, {send, Packet});
+       false -> ok.
+       
