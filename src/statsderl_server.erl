@@ -57,7 +57,7 @@ init(_Args) ->
         hostname = lookup_hostname(Hostname),
         port = Port,
         basekey = BaseKey,
-        socket = Socket,
+        socket = Socket
     }}.
 
 handle_call(_Request, _From, State) ->

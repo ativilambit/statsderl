@@ -140,5 +140,6 @@ send(Method, Key, Value, SampleRate, Tags) ->
           Packet = generate_packet(Method, Key, Value, SampleRate, Tags),
           ServerName = statsderl_server:random_server_name(),
           gen_server:cast(ServerName, {send, Packet});
-       false -> ok.
+       false -> ok
+    end.
        
